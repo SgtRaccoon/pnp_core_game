@@ -1,0 +1,122 @@
+<html>
+    <head>
+        <style>
+            #characterCanvas {
+                width: 480px;
+                height: 640px;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="characterCanvas"></canvas>
+        <div>
+            <button onclick="prev('head')"> << </button>
+            Head Shape
+            <button onclick="next('head')"> >> </button>
+        </div>
+        
+        <div>
+            <button onclick="prev('body')"> << </button>
+            Body Shape
+            <button onclick="next('body')"> >> </button>
+        </div>
+        
+        <div>
+            Imports:
+            <table>
+                <tr>
+                    <th>Author</th>
+                    <th>Package</th>
+                </tr>
+                <tr>
+                    <td>SgtRaccoon</td>
+                    <td>pnp_base_module</td>
+                </tr>
+                <tr>
+                    <td><input type="text" id="new_module_author" /></td>
+                    <td><select id="new_module_package"></select></td>
+                </tr>
+            </table>
+        </div>
+        
+        <script>
+            var character = {
+                "head": "head_1",
+                "body": "body_1"
+            };
+            var heads = ["head_1", "head_2", "head_3"];
+            var bodies = ["body_1", "body_2"];
+
+            var imports = [
+                {
+                    author: "SgtRaccoon",
+                    package: "pnp_base_module"
+                }
+            ];
+
+            function gen() {
+                var canvas = document.getElementById("characterCanvas");
+                var ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                var drawingBody = new Image();
+                drawingBody.src = "./assets/" + character["body"] + ".png";
+                drawingBody.onload = function() {
+                    ctx.drawImage(drawingBody, 0, 0, canvas.width, canvas.height);
+                }
+
+                var drawingHead = new Image();
+                drawingHead.src = "./assets/" + character["head"] + ".png";
+                drawingHead.onload = function() {
+                    ctx.drawImage(drawingHead, 0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            function prev(type) {
+                var array = getArrByType(type);
+
+                switch(type) {
+                    case "body":
+                        array = bodies;
+                    case "head":
+                    default:
+                }
+
+                if (array.indexOf(character[type]) === 0) {
+                    character[type] = array[array.length - 1];
+                } else {
+                    character[type] = array[array.indexOf(character[type]) - 1];
+                }
+
+                gen();
+            }
+
+            function next(type) {
+                var array = getArrByType(type);
+
+                if (array.indexOf(character[type]) === array.length - 1) {
+                    character[type] = array[0];
+                } else {
+                    character[type] = array[array.indexOf(character[type]) + 1];
+                }
+
+                gen();
+            }
+
+            function getArrByType(type) {
+                var arr = heads;
+
+                switch(type) {
+                    case "body":
+                        arr = bodies;
+                    case "head":
+                    default:
+                }
+
+                return arr;
+            }
+
+            gen();
+        </script>
+    </body>
+</html>
