@@ -1,0 +1,1 @@
+This is where we put visual assets for creatures, gear, and environments.

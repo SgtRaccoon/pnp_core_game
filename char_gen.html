@@ -22,19 +22,29 @@
         </div>
         
         <div>
+            <button onclick="prev('hair')"> << </button>
+            Hair
+            <button onclick="next('hair')"> >> </button>
+        </div>
+        
+        <div>
+            <button onclick="prev('features')"> << </button>
+            Facial Features
+            <button onclick="next('features')"> >> </button>
+        </div>
+        
+        <div>
             Imports:
-            <table>
+            <table id="importedModules">
                 <tr>
                     <th>Author</th>
-                    <th>Package</th>
+                    <th>Module</th>
+                    <th></th>
                 </tr>
                 <tr>
-                    <td>SgtRaccoon</td>
-                    <td>pnp_base_module</td>
-                </tr>
-                <tr>
-                    <td><input type="text" id="new_module_author" /></td>
+                    <td><input type="text" id="new_module_author" onblur="getAuthorsPackages(document.getElementById('new_module_author').value)" /></td>
                     <td><select id="new_module_package"></select></td>
+                    <td><button id="new_module_add" onclick="addModule()"> + </button></td>
                 </tr>
             </table>
         </div>
@@ -48,10 +58,10 @@
             var bodies = ["body_1", "body_2"];
 
             var imports = [
-                {
-                    author: "SgtRaccoon",
-                    package: "pnp_base_module"
-                }
+                // {
+                //     author: "SgtRaccoon",
+                //     module: "pnp_base_module"
+                // }
             ];
 
             function gen() {
@@ -114,6 +124,96 @@
                 }
 
                 return arr;
+            }
+
+            function getAuthorsPackages(author) {
+                var githubReposUrl = "https://api.github.com/users/" + author + "/repos";
+                var selectBox = document.getElementById('new_module_package');
+                selectBox.innerHTML = ''; // Clear options
+
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.onreadystatechange = function() { 
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    var response = xmlHttp.response;
+                    var repos = JSON.parse(response);
+
+                    for (repo of repos) {
+                        var opt = document.createElement('option');
+                        opt.appendChild( document.createTextNode(repo['name']) );
+                        opt.value = repo['name'];
+                        selectBox.appendChild(opt);
+                    }
+                }
+                xmlHttp.open("GET", githubReposUrl, true);
+                xmlHttp.send(null);
+            }
+
+            function addModule() {
+                var author = document.getElementById('new_module_author').value;
+                var moduleSelect = document.getElementById('new_module_package');
+                var module = moduleSelect.options[moduleSelect.selectedIndex].value;
+
+                imports.push({'author': author, 'module': module});
+
+                refreshOptions();
+            }
+
+            function removeModule(author, module) {
+                var removeObj = {'author': author, 'module': module};
+                var removeIndex = imports.map(function (i) { return JSON.stringify(i); }).indexOf(JSON.stringify(removeObj));
+
+                if (removeIndex > -1) {
+                    imports.splice(removeIndex, 1);
+                }
+
+                refreshOptions();
+            }
+
+            function refreshOptions() {
+                // Clear table
+                var moduleTable = document.getElementById('importedModules');
+                moduleTable.innerHTML = `
+                <tr>
+                    <th>Author</th>
+                    <th>Module</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <td><input type="text" id="new_module_author" onblur="getAuthorsPackages(document.getElementById('new_module_author').value)" /></td>
+                    <td><select id="new_module_package"></select></td>
+                    <td><button id="new_module_add" onclick="addModule()"> + </button></td>
+                </tr>
+                `; // Clear options                
+
+                // Remove all non-default hair/features
+                // hairs = [];
+                // features = [];
+
+                for (mods of imports) {
+                    // Update table
+                    var newRow = moduleTable.insertRow(moduleTable.rows.length - 1);
+                    var authorCell = newRow.insertCell(0);
+                    authorCell.appendChild(document.createTextNode(mods.author));
+                    var moduleCell = newRow.insertCell(-1);
+                    moduleCell.appendChild(document.createTextNode(mods.module));
+                    var removeCell = newRow.insertCell(-1);
+                    var removeButton = document.createElement("button");
+                    removeButton.innerHTML = " - ";
+                    removeButton.setAttribute('onclick', 'removeModule(mods.author, mods.module)');
+                    removeCell.appendChild(removeButton);
+
+                    var yamlFile = "https://raw.githubusercontent.com/" + mods.author + "/" + mods.module + "/master/module.yaml";
+
+                    console.log('yamlFile: ' + yamlFile);
+
+                    // parse yamlFile
+                    // for (hairStyle of yamlFile.portrait.hair) {
+                    //  hairs.push(https://raw.githubusercontent.com/" + mods.author + "/" + mods.module + "/master/assets/" + hairStyle + ".png);
+                    // }
+                    // for (feature of yamlFile.portrait.features) {
+                    //  features.push(https://raw.githubusercontent.com/" + mods.author + "/" + mods.module + "/master/assets/" + feature + ".png);
+                    // }
+                }
             }
 
             gen();
